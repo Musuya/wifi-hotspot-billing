@@ -1,0 +1,15 @@
+# Real credentials - never commit these
+config/database.php
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log
+
+# Dependency dirs (if you ever add Composer)
+vendor/
+composer.lock
