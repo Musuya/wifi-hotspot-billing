@@ -44,7 +44,7 @@ $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $vouchers = $stmt->fetchAll();
 
-$batches = $db->query("SELECT DISTINCT batch_label FROM vouchers ORDER BY id DESC")->fetchAll(PDO::FETCH_COLUMN);
+$batches = $db->query("SELECT batch_label FROM vouchers GROUP BY batch_label ORDER BY MAX(id) DESC")->fetchAll(PDO::FETCH_COLUMN);
 
 include __DIR__ . '/_nav.php';
 ?>
