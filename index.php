@@ -1,5 +1,12 @@
 <?php
+// Show all errors
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// ... rest of your index.php code
 require_once __DIR__ . '/includes/database.php';
+require_once __DIR__ . '/includes/helpers.php';
 $db = getDB();
 
 $packages = $db->query("SELECT * FROM packages WHERE is_active = 1 ORDER BY price ASC")->fetchAll();
@@ -71,7 +78,7 @@ $settings = $db->query("SELECT * FROM settings LIMIT 1")->fetch();
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="fw-semibold"><?= e($pkg['name']) ?></div>
-                                <small class="text-muted"><?= e($pkg['duration']) ?> • <?= e($pkg['speed_limit'] ?: 'Unlimited') ?></small>
+                                <small class="text-muted"><?= e($pkg['duration_minutes'] ?? 'N/A') ?> min • <?= e($pkg['rate_limit'] ?? 'Unlimited') ?></small>
                             </div>
                             <div class="fw-bold" style="font-size:1.25rem;color:var(--primary);">Ksh <?= number_format($pkg['price']) ?></div>
                         </div>
