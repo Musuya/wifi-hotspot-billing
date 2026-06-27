@@ -47,16 +47,16 @@ function generateVoucherCode(int $length = 8): string {
  * Accepts 07XXXXXXXX, 7XXXXXXXX, 2547XXXXXXXX, +2547XXXXXXXX.
  */
 function normalizePhone(string $phone): ?string {
-    $phone = preg_replace('/\s+/', '', $phone);
+    $phone = preg_replace('/\\s+/', '', $phone);
     $phone = ltrim($phone, '+');
 
-    if (preg_match('/^0(7|1)\d{8}$/', $phone)) {
+    if (preg_match('/^0(7|1)\\d{8}$/', $phone)) {
         return '254' . substr($phone, 1);
     }
-    if (preg_match('/^(7|1)\d{8}$/', $phone)) {
+    if (preg_match('/^(7|1)\\d{8}$/', $phone)) {
         return '254' . $phone;
     }
-    if (preg_match('/^254(7|1)\d{8}$/', $phone)) {
+    if (preg_match('/^254(7|1)\\d{8}$/', $phone)) {
         return $phone;
     }
     return null; // invalid format
@@ -78,4 +78,18 @@ function jsonResponse(array $data, int $statusCode = 200): void {
     header('Content-Type: application/json');
     echo json_encode($data);
     exit;
+}
+
+/**
+ * Check if user is logged in as admin
+ */
+function is_admin_logged_in(): bool {
+    return isset($_SESSION['admin_id']) && $_SESSION['admin_id'] > 0;
+}
+
+/**
+ * Escape HTML output
+ */
+function e(string $text): string {
+    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
 }
