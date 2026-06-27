@@ -1,24 +1,38 @@
 <?php
+session_start(); // MUST be first!
+
 require_once __DIR__ . '/../includes/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
+// If already logged in, redirect to dashboard
+if (is_admin_logged_in()) {
+    redirect('index.php');
+}
+
+$error = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM admins WHERE username = ?");
-    $stmt->execute([$_POST['username']]);
-    $admin = $stmt->fetch();
+    try {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT * FROM admins WHERE username = ?");
+        $stmt->execute([$_POST['username']]);
+        $admin = $stmt->fetch();
 
-    if ($admin && password_verify($_POST['password'], $admin['password_hash'])) {
-        $_SESSION['admin_id'] = $admin['id'];
-        $_SESSION['admin_name'] = $admin['username'];
+        if ($admin && password_verify($_POST['password'], $admin['password_hash'])) {
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_name'] = $admin['username'];
 
-        // Log login
-        $db->prepare("INSERT INTO admin_logs (admin_id, action, ip_address, created_at) VALUES (?, 'login', ?, NOW())")
-           ->execute([$admin['id'], $_SERVER['REMOTE_ADDR']]);
+            // Log login
+            $db->prepare("INSERT INTO admin_logs (admin_id, action, ip_address, created_at) VALUES (?, 'login', ?, NOW())")
+                    ->execute([$admin['id'], $_SERVER['REMOTE_ADDR']]);
 
-        redirect('index.php');
-    } else {
-        $error = 'Invalid username or password';
+            redirect('index.php');
+            exit; // Stop execution after redirect
+        } else {
+            $error = 'Invalid username or password';
+        }
+    } catch (Exception $e) {
+        $error = 'Database error: ' . $e->getMessage();
     }
 }
 ?>
@@ -220,55 +234,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </style>
 </head>
 <body>
-    <div class="login-page">
-        <button class="theme-toggle-login" id="themeToggle">
-            <i class="bi bi-moon"></i>
-        </button>
+<div class="login-page">
+    <button class="theme-toggle-login" id="themeToggle">
+        <i class="bi bi-moon"></i>
+    </button>
 
-        <div class="login-container">
-            <div class="login-card animate-fade-in">
-                <div class="login-logo">
-                    <i class="bi bi-wifi"></i>
-                </div>
-                <h1 class="login-title">Welcome Back</h1>
-                <p class="login-subtitle">Sign in to your WiFi Billing dashboard</p>
+    <div class="login-container">
+        <div class="login-card animate-fade-in">
+            <div class="login-logo">
+                <i class="bi bi-wifi"></i>
+            </div>
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your WiFi Billing dashboard</p>
 
-                <?php if (!empty($error)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-danger">
                     <i class="bi bi-exclamation-circle-fill"></i>
                     <?= e($error) ?>
                 </div>
-                <?php endif; ?>
+            <?php endif; ?>
 
-                <form method="POST" id="loginForm">
-                    <div class="input-group">
-                        <input type="text" name="username" placeholder="Username" required autofocus>
-                        <i class="bi bi-person"></i>
-                    </div>
-                    <div class="input-group">
-                        <input type="password" name="password" placeholder="Password" required>
-                        <i class="bi bi-lock"></i>
-                    </div>
-                    <button type="submit" class="btn-login">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        Sign In
-                    </button>
-                </form>
-
-                <div class="login-footer">
-                    WiFi Hotspot Billing System v2.0
+            <form method="POST" id="loginForm">
+                <div class="input-group">
+                    <input type="text" name="username" placeholder="Username" required autofocus>
+                    <i class="bi bi-person"></i>
                 </div>
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Password" required>
+                    <i class="bi bi-lock"></i>
+                </div>
+                <button type="submit" class="btn-login">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    Sign In
+                </button>
+            </form>
+
+            <div class="login-footer">
+                WiFi Hotspot Billing System v2.0
             </div>
         </div>
     </div>
+</div>
 
-    <script src="../assets/js/app.js"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            const btn = this.querySelector('.btn-login');
-            btn.innerHTML = '<span style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Signing in...';
-            btn.disabled = true;
-        });
-    </script>
+<script src="../assets/js/app.js"></script>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const btn = this.querySelector('.btn-login');
+        btn.innerHTML = '<span style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;"></span> Signing in...';
+        btn.disabled = true;
+    });
+</script>
 </body>
 </html>
