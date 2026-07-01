@@ -27,24 +27,3 @@ jobs:
       - name: Check code style
         run: php-cs-fixer fix --dry-run --diff --rules=@PSR12
         continue-on-error: true  # warn only, don't fail the build yet
-deploy:
-    name: Deploy to Server
-    runs-on: ubuntu-latest
-    needs: lint
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          script: |
-            cd /var/www/wifi-hotspot-billing
-            git pull origin main
-            # config/database.php is gitignored — never overwritten
-            # Clear any PHP opcache if applicable
-            php -r "opcache_reset();" 2>/dev/null || true
